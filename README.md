@@ -1,4 +1,4 @@
-<h1 align="center"> 🏠 XÂY DỰNG THIẾT KẾ HỆ THỐNG NHÀ THÔNG MINH </h1>
+<h1 align="center"> ỨNG DỤNG SMART CONTRACT TRONG QUẢN LÝ VÀ XÁC THỰC BIỂN SỐ XE </h1>
  
 <div align="center">
 
