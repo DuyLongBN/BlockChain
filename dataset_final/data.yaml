@@ -1,0 +1,7 @@
+path: dataset_final
+
+train: images/train
+val: images/val
+
+names:
+  0: license_plate

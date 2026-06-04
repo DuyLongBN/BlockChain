@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+uploads/*
+results/*
+qr_codes/*
+!uploads/.gitkeep
+!results/.gitkeep
+!qr_codes/.gitkeep
+
+# Logs
+*.log
+
+# Node modules
+node_modules/
+
+# Solc artifacts
+contracts/*.json

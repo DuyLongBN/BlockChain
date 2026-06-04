@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockPlate - Quản lý Biển số xe trên Blockchain</title>
+    <meta name="description" content="Hệ thống quản lý và xác thực biển số xe Việt Nam sử dụng Smart Contract trên Blockchain Ethereum">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260604-plate-detail-v2">
+</head>
+<body>
+    <!-- Background Particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">⛓️</span>
+                    <span class="logo-text">BlockPlate</span>
+                </div>
+                <p class="logo-sub">Smart Contract Registry</p>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Tổng quan</span>
+                </li>
+                <li class="nav-item" data-tab="blockchain" id="nav-blockchain">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-label nav-label-public">Tra cứu biển số</span>
+                    <span class="nav-label nav-label-admin hidden">Quản lý biển số</span>
+                </li>
+                <li class="nav-item" data-tab="recognition" id="nav-recognition">
+                    <span class="nav-icon">📷</span>
+                    <span class="nav-label">Hỗ trợ OCR</span>
+                </li>
+                <li class="nav-item" data-tab="webcam" id="nav-webcam">
+                    <span class="nav-icon">🎥</span>
+                    <span class="nav-label">Webcam OCR</span>
+                </li>
+                <li class="nav-item" data-tab="timeline" id="nav-timeline">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-label">Timeline</span>
+                </li>
+                <li class="nav-item" data-tab="stolen" id="nav-stolen">
+                    <span class="nav-icon">🚨</span>
+                    <span class="nav-label">Xe Mất Cắp</span>
+                </li>
+                <li class="nav-item" data-tab="history" id="nav-history">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Lịch sử xác thực</span>
+                </li>
+
+                <!-- Admin-only nav items -->
+                <li class="nav-divider nav-admin-item hidden"></li>
+                <li class="nav-item nav-admin-item hidden" data-tab="blockchain" data-focus-target="registerForm" id="nav-admin-register">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-label">Đăng ký phương tiện</span>
+                    <span class="admin-nav-badge">ADMIN</span>
+                </li>
+                <li class="nav-item nav-admin-item hidden" data-tab="blockchain" data-focus-target="adminViolationCard" id="nav-admin-violation">
+                    <span class="nav-icon">⚠️</span>
+                    <span class="nav-label">Ghi nhận vi phạm</span>
+                    <span class="admin-nav-badge">ADMIN</span>
+                </li>
+                <li class="nav-item nav-admin-item hidden" data-tab="admin" id="nav-admin">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">Quản trị hệ thống</span>
+                    <span class="admin-nav-badge">ADMIN</span>
+                </li>
+
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-session-actions">
+                    <button type="button" class="sidebar-session-action nav-admin-login" id="nav-admin-login" onclick="adminLogin()">
+                        <span class="nav-icon">🔐</span>
+                        <span class="nav-label">Đăng nhập Admin bằng MetaMask</span>
+                    </button>
+                    <button type="button" class="sidebar-session-action sidebar-session-action-logout nav-admin-logout hidden" id="nav-admin-logout" onclick="adminLogout()">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-label">Đăng xuất Admin</span>
+                    </button>
+                </div>
+                <div class="blockchain-status" id="bcStatusIndicator">
+                    <span class="bc-dot" id="bcDot"></span>
+                    <span class="bc-text" id="bcText">Đang kết nối...</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <h2 class="page-title" id="pageTitle">📊 Tổng Quan Hệ Thống</h2>
+                <div class="topbar-right">
+                    <div class="admin-badge hidden" id="adminBadge">
+                        <span class="admin-badge-icon">🛡️</span>
+                        <span class="admin-badge-text">ADMIN</span>
+                    </div>
+                    <button class="btn btn-wallet" id="connectWalletBtn" onclick="connectMetamask()">
+                        <span id="walletIcon">🦊</span>
+                        <span id="walletText">Kết nối ví</span>
+                    </button>
+                    <div class="network-badge" id="networkBadge">
+                        <span class="badge-dot"></span>
+                        <span id="networkName">Sepolia Testnet</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ========== TAB: DASHBOARD ========== -->
+            <section class="tab-content active" id="tab-dashboard">
+                <!-- Role mode banner -->
+                <div class="role-banner role-banner-user" id="userModeBanner">
+                    <span class="role-banner-icon">👤</span>
+                    <span>Bạn đang xem ở chế độ người dùng. Chỉ có thể tra cứu và xác thực biển số.</span>
+                </div>
+                <div class="role-banner role-banner-admin hidden" id="adminModeBanner">
+                    <span class="role-banner-icon">🛡️</span>
+                    <span>Đã xác thực Admin bằng MetaMask. Bạn có quyền quản trị đầy đủ.</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" id="statRegistered">
+                        <div class="stat-icon">🚗</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statRegNum">0</span>
+                            <span class="stat-label">Biển số duy nhất</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statActivePlates">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statActiveNum">0</span>
+                            <span class="stat-label">Biển đang active</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statInactivePlates">
+                        <div class="stat-icon">❌</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statInactiveNum">0</span>
+                            <span class="stat-label">Biển inactive</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statRegisterEvents">
+                        <div class="stat-icon">⛓️</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statRegTxNum">0</span>
+                            <span class="stat-label">Giao dịch đăng ký</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statVerified">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statVerNum">0</span>
+                            <span class="stat-label">Lần xác thực</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statTransfers">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statTransNum">0</span>
+                            <span class="stat-label">Chuyển nhượng</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="statBlock">
+                        <div class="stat-icon">⛓️</div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="statBlockNum">0</span>
+                            <span class="stat-label">Block hiện tại</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Recent Plates -->
+                    <div class="glass-card">
+                        <h3 class="card-title">🚗 Biển số gần đây</h3>
+                        <div class="plate-list" id="recentPlatesList">
+                            <div class="empty-msg">Chưa có biển số nào được đăng ký</div>
+                        </div>
+                    </div>
+                    <!-- Quick Verify -->
+                    <div class="glass-card">
+                        <h3 class="card-title">🔍 Xác thực nhanh</h3>
+                        <div class="quick-verify-form">
+                            <input type="text" id="quickVerifyInput" class="input-field" placeholder="Nhập biển số (VD: 30G-493.44)">
+                            <button class="btn btn-primary" id="quickVerifyBtn" onclick="quickVerify()">Xác thực</button>
+                        </div>
+                        <div id="quickVerifyResult" class="verify-result hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: RECOGNITION ========== -->
+            <section class="tab-content" id="tab-recognition">
+                <div class="recognition-layout">
+                    <div class="glass-card rec-controls">
+                        <h3 class="card-title">📷 OCR & xác thực biển số</h3>
+                        <p class="helper-text">Tải một ảnh duy nhất để OCR đọc biển số, kiểm tra hoặc chỉnh sửa kết quả, rồi xác thực trực tiếp với smart contract.</p>
+                        <div class="rec-buttons">
+                            <label class="file-upload-area" id="imageUploadArea">
+                                <input type="file" id="imageInput" accept="image/*" onchange="processImage(event)">
+                                <div class="upload-content">
+                                    <span class="upload-icon">📸</span>
+                                    <span>Tải ảnh biển số</span>
+                                    <small>JPG, PNG, BMP</small>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="rec-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoVerifyCheck">
+                                <span>Không tự quyết định kết quả bằng OCR</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rec-display">
+                        <div id="recImageContainer" class="rec-image-container">
+                            <div class="rec-placeholder">
+                                <span class="placeholder-icon">🖼️</span>
+                                <p>Ảnh kết quả sẽ hiển thị tại đây</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rec-results">
+                        <h3 class="card-title">🔍 Kết quả OCR & blockchain</h3>
+                        <div id="recResultsList" class="rec-results-list">
+                            <div class="empty-msg">Chưa có kết quả</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: BLOCKCHAIN ========== -->
+            <section class="tab-content" id="tab-blockchain">
+                <div class="blockchain-layout">
+                    <!-- Role mode banner for blockchain tab -->
+                    <div class="role-banner role-banner-user blockchain-role-banner" id="blockchainUserBanner">
+                        <span class="role-banner-icon">👤</span>
+                        <span>Bạn đang xem ở chế độ người dùng. Chỉ có thể tra cứu và xác thực biển số.</span>
+                    </div>
+                    <div class="role-banner role-banner-admin blockchain-role-banner hidden" id="blockchainAdminBanner">
+                        <span class="role-banner-icon">🛡️</span>
+                        <span>Chế độ Admin — Bạn có quyền thêm, sửa, chuyển nhượng, khóa/mở khóa biển số.</span>
+                    </div>
+
+                    <div class="blockchain-admin-actions admin-only-action hidden">
+                        <div class="blockchain-admin-column">
+                            <!-- Register Form -->
+                            <div class="glass-card">
+                                <h3 class="card-title">📝 Đăng ký biển số mới</h3>
+                                <form id="registerForm" onsubmit="registerPlate(event)">
+                                    <div class="form-group">
+                                        <label>Biển số xe *</label>
+                                        <input type="text" id="regPlateNumber" class="input-field" placeholder="VD: 30G-493.44" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tên chủ xe *</label>
+                                        <input type="text" id="regOwnerName" class="input-field" placeholder="VD: Nguyễn Văn A" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Loại xe</label>
+                                            <select id="regVehicleType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Chọn loại xe"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Màu xe</label>
+                                            <select id="regColor" class="input-field" data-select-source="colors" data-placeholder="Chọn màu xe"></select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tỉnh/Thành phố</label>
+                                        <select id="regProvince" class="input-field" data-select-source="provinces" data-placeholder="Chọn tỉnh/thành phố"></select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+                                        ⛓️ Đăng ký lên Blockchain
+                                    </button>
+                                </form>
+                                <div id="registerResult" class="tx-result hidden"></div>
+                            </div>
+
+                            <!-- Update Vehicle Form -->
+                            <div class="glass-card">
+                                <h3 class="card-title">🛠️ Cập nhật thông tin phương tiện</h3>
+                                <form id="updateVehicleForm" onsubmit="updateVehicle(event)">
+                                    <div class="form-group">
+                                        <label>Biển số xe *</label>
+                                        <input type="text" id="updPlateNumber" class="input-field" placeholder="Biển số cần cập nhật" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Loại xe</label>
+                                            <select id="updVehicleType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Màu xe</label>
+                                            <select id="updColor" class="input-field" data-select-source="colors" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tỉnh/Thành phố</label>
+                                        <select id="updProvince" class="input-field" data-select-source="provinces" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-full" id="updateVehicleBtn">
+                                        🛠️ Cập nhật phương tiện
+                                    </button>
+                                </form>
+                                <div id="updateVehicleResult" class="tx-result hidden"></div>
+                            </div>
+
+                            <!-- Transfer Form -->
+                            <div class="glass-card">
+                                <h3 class="card-title">🔄 Chuyển nhượng</h3>
+                                <form id="transferForm" onsubmit="transferOwnership(event)">
+                                    <div class="form-group">
+                                        <label>Biển số xe *</label>
+                                        <input type="text" id="txPlateNumber" class="input-field" placeholder="Biển số cần chuyển" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tên chủ mới *</label>
+                                        <input type="text" id="txNewOwner" class="input-field" placeholder="Tên chủ xe mới" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-secondary btn-full" id="transferBtn">
+                                        🔄 Chuyển nhượng
+                                    </button>
+                                </form>
+                                <div id="transferResult" class="tx-result hidden"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Deactivate & Violations (Admin) -->
+                        <div class="glass-card violation-card" id="adminViolationCard">
+                            <h3 class="card-title text-danger">⚠️ Quản lý Vi phạm / Mất cắp</h3>
+                            
+                            <!-- Khóa / mở khóa phương tiện -->
+                            <div class="action-section admin-content">
+                                <h4>Khóa / Mở Khóa Phương Tiện</h4>
+                                <input type="text" id="deactivatePlateNumber" class="input-field" placeholder="Nhập biển số cần xử lý">
+                                <div class="plate-status-actions">
+                                    <button type="button" class="btn btn-danger" onclick="deactivatePlate()" id="deactivateBtn">🔒 Khóa phương tiện</button>
+                                    <button type="button" class="btn btn-success" onclick="reactivateManagedPlate()" id="reactivateBtn">🔓 Mở khóa phương tiện</button>
+                                </div>
+                                <div id="deactivateResult" class="tx-result hidden"></div>
+                            </div>
+                            
+                            <hr class="divider">
+                            
+                            <!-- Phạt nguội -->
+                            <div class="action-section admin-content">
+                                <h4>Ghi nhận Phạt Nguội</h4>
+                                <form id="violationForm" onsubmit="addViolation(event)">
+                                    <div class="form-group">
+                                        <input type="text" id="violPlateNumber" class="input-field" placeholder="Biển số vi phạm" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="violDescription" class="input-field" placeholder="Mô tả lỗi (Vượt đèn đỏ...)" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <input type="number" id="violFine" class="input-field" placeholder="Số tiền phạt (VNĐ)" required>
+                                        <button type="submit" class="btn btn-warning" id="violationBtn">📝 Ghi Lỗi</button>
+                                    </div>
+                                </form>
+                                <div id="violationResult" class="tx-result hidden"></div>
+                            </div>
+
+                            <hr class="divider">
+
+                            <!-- Xử lý nộp phạt -->
+                            <div class="action-section admin-content">
+                                <h4>Xử lý nộp phạt</h4>
+                                <form id="paidViolationForm" onsubmit="submitMarkViolationPaid(event)">
+                                    <div class="form-row">
+                                        <input type="text" id="paidPlateNumber" class="input-field" placeholder="Biển số đã nộp phạt" required>
+                                        <input type="number" id="paidViolationIndex" class="input-field" min="0" placeholder="Mã lỗi / thứ tự" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-full" id="paidViolationBtn">✅ Đánh dấu đã nộp phạt</button>
+                                </form>
+                                <div id="paidViolationResult" class="tx-result hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registered Plates -->
+                    <div class="glass-card plate-registry">
+                        <h3 class="card-title">📋 Danh sách biển số đã đăng ký</h3>
+                        <div class="registry-controls">
+                            <button class="btn btn-small" onclick="loadAllPlates()">🔄 Làm mới</button>
+                        </div>
+                        <div class="plate-table-wrapper">
+                            <table class="plate-table" id="plateTable">
+                                <thead>
+                                    <tr>
+                                        <th>Biển số</th>
+                                        <th>Chủ xe</th>
+                                        <th>Loại xe</th>
+                                        <th>Tỉnh</th>
+                                        <th>Ngày ĐK</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plateTableBody">
+                                    <tr><td colspan="6" class="empty-msg">Chưa có dữ liệu</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: WEBCAM REAL-TIME ========== -->
+            <section class="tab-content" id="tab-webcam">
+                <div class="webcam-layout">
+                    <div class="glass-card">
+                        <h3 class="card-title">🎥 Webcam hỗ trợ OCR</h3>
+                        <p class="helper-text">Webcam là công cụ hỗ trợ nhập biển số trong điều kiện ảnh rõ. Hãy xác nhận biển số trước khi tra cứu blockchain.</p>
+                        <div class="webcam-controls">
+                            <button class="btn btn-primary" id="startWebcamBtn" onclick="startWebcam()">▶️ Bắt đầu</button>
+                            <button class="btn btn-danger hidden" id="stopWebcamBtn" onclick="stopWebcam()">⏹️ Dừng</button>
+                        </div>
+                        <div id="webcamContainer" class="webcam-container">
+                            <div class="webcam-placeholder">
+                                <span class="placeholder-icon">📹</span>
+                                <p>Nhấn "Bắt đầu" để khởi động webcam</p>
+                            </div>
+                            <canvas id="webcamCanvas" class="hidden" style="width: 100%; height: 100%; display: block; object-fit: contain; border-radius: 8px;"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 class="card-title">🚗 Biển số đề xuất (Real-time)</h3>
+                        <div id="liveDetectionsList" class="live-detections">
+                            <div class="empty-msg">Chưa có phát hiện nào</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 class="card-title">📊 Thống kê Real-time</h3>
+                        <div class="live-stats">
+                            <div class="stat-mini">
+                                <span class="stat-label">Biển phát hiện</span>
+                                <span class="stat-value" id="liveDetectionCount">0</span>
+                            </div>
+                            <div class="stat-mini">
+                                <span class="stat-label">Xe bị báo mất</span>
+                                <span class="stat-value text-danger" id="liveStolenCount">0</span>
+                            </div>
+                            <div class="stat-mini">
+                                <span class="stat-label">Cảnh báo lỗi</span>
+                                <span class="stat-value text-warning" id="liveViolationCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: BLOCKCHAIN TIMELINE ========== -->
+            <section class="tab-content" id="tab-timeline">
+                <div class="timeline-layout">
+                    <div class="glass-card">
+                        <h3 class="card-title">📈 Timeline Giao Dịch Blockchain</h3>
+                        <div class="timeline-filters">
+                            <select id="timelineFilter" class="input-field" style="width: 200px;">
+                                <option value="">Tất cả</option>
+                                <option value="register">Đăng ký</option>
+                                <option value="update">Cập nhật phương tiện</option>
+                                <option value="reactivate">Mở khóa phương tiện</option>
+                                <option value="transfer">Chuyển nhượng</option>
+                                <option value="violation">Vi phạm</option>
+                                <option value="fine_paid">Nộp phạt</option>
+                                <option value="deactivate">Khóa phương tiện</option>
+                            </select>
+                            <button class="btn btn-small" onclick="loadTimeline()">🔄 Tải lại</button>
+                        </div>
+                        <div id="transactionTimeline" class="transaction-timeline">
+                            <div class="empty-msg">Không có giao dịch nào</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 class="card-title">📊 Thống kê Timeline</h3>
+                        <div id="timelineStats" class="timeline-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Tổng giao dịch</span>
+                                <span class="stat-number" id="totalTransactions">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Đăng ký</span>
+                                <span class="stat-number" id="registerCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Cập nhật</span>
+                                <span class="stat-number" id="updateCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Mở khóa</span>
+                                <span class="stat-number" id="reactivateCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Chuyển nhượng</span>
+                                <span class="stat-number" id="transferCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Vi phạm</span>
+                                <span class="stat-number" id="violationCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Nộp phạt</span>
+                                <span class="stat-number" id="finePaidCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Khóa phương tiện</span>
+                                <span class="stat-number" id="deactivateCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: STOLEN VEHICLES ========== -->
+            <section class="tab-content" id="tab-stolen">
+                <div class="stolen-layout">
+                    <!-- Báo mất xe (admin only) -->
+                    <div class="glass-card admin-only-action hidden">
+                        <h3 class="card-title">🚨 Báo Cáo Xe Mất Cắp</h3>
+                        <form id="stolenReportForm" onsubmit="reportStolenVehicle(event)">
+                            <div class="form-group">
+                                <label>Biển số xe *</label>
+                                <input type="text" id="stolenPlateNumber" class="input-field" placeholder="VD: 30G-493.44" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tên chủ xe *</label>
+                                <input type="text" id="stolenOwnerName" class="input-field" placeholder="Tên chủ sở hữu" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Loại xe</label>
+                                    <select id="stolenVehicleType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Chọn loại xe"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Màu sắc</label>
+                                    <select id="stolenColor" class="input-field" data-select-source="colors" data-placeholder="Chọn màu xe"></select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tỉnh/Thành phố</label>
+                                    <select id="stolenProvince" class="input-field" data-select-source="provinces" data-placeholder="Chọn tỉnh/thành phố"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ngày báo mất</label>
+                                    <input type="date" id="stolenReportDate" class="input-field" lang="vi" data-default-today="true" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Mô tả chi tiết</label>
+                                <textarea id="stolenDescription" class="input-field" style="min-height: 80px;" placeholder="Mô tả tình trạng xe, nơi mất cắp..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-full" id="reportStolenBtn">
+                                📢 Báo Cáo Xe Mất Cắp
+                            </button>
+                        </form>
+                        <div id="stolenReportResult" class="tx-result hidden"></div>
+                    </div>
+
+                    <!-- Danh sách xe bị trộm -->
+                    <div class="glass-card">
+                        <h3 class="card-title">📋 Danh Sách Xe Mất Cắp (Chưa Tìm Thấy)</h3>
+                        <div class="stolen-search">
+                            <input type="text" id="stolenSearchInput" class="input-field" placeholder="Tìm biển số, tên chủ...">
+                            <button class="btn btn-small" onclick="searchStolenVehicles()">🔍 Tìm</button>
+                            <button class="btn btn-small" onclick="loadStolenList()">🔄 Tải lại</button>
+                        </div>
+                        <div id="stolenList" class="stolen-vehicles-list">
+                            <div class="empty-msg">Chưa có xe mất cắp nào được báo cáo</div>
+                        </div>
+                    </div>
+
+                    <!-- Thống kê -->
+                    <div class="glass-card">
+                        <h3 class="card-title">📊 Thống Kê Xe Mất Cắp</h3>
+                        <div id="stolenStats" class="stolen-stats">
+                            <div class="stat-card-mini">
+                                <div class="stat-icon">🚨</div>
+                                <div>
+                                    <span class="stat-label">Xe đang mất</span>
+                                    <span class="stat-number" id="currentStolenCount">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-mini">
+                                <div class="stat-icon">✅</div>
+                                <div>
+                                    <span class="stat-label">Xe tìm thấy</span>
+                                    <span class="stat-number" id="recoveredCount">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-mini">
+                                <div class="stat-icon">❌</div>
+                                <div>
+                                    <span class="stat-label">Báo cáo hủy</span>
+                                    <span class="stat-number" id="canceledCount">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="stolenByProvince" class="stolen-by-province">
+                            <h4>Top tỉnh có xe mất</h4>
+                            <div id="provinceList" style="margin-top: 10px;">
+                                <div class="empty-msg">Không có dữ liệu</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR verification -->
+                    <div class="glass-card">
+                        <h3 class="card-title">🔐 Xác Minh QR Phương Tiện</h3>
+                        <div class="admin-only-action hidden">
+                            <div class="qr-generator-form">
+                                <input type="text" id="qrPlateNumber" class="input-field" placeholder="Nhập biển số">
+                                <div class="form-row">
+                                    <input type="text" id="qrOwnerName" class="input-field" placeholder="Tên chủ xe">
+                                    <select id="qrVehicleType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Loại xe"></select>
+                                </div>
+                                <div class="form-row">
+                                    <select id="qrColor" class="input-field" data-select-source="colors" data-placeholder="Màu sắc"></select>
+                                    <select id="qrProvince" class="input-field" data-select-source="provinces" data-placeholder="Tỉnh/Thành phố"></select>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-full" onclick="generateQRCode()">🔲 Tạo QR Code</button>
+                            </div>
+                            <div id="qrCodeDisplay" class="qr-display hidden" style="text-align: center; margin-top: 20px;">
+                                <img id="qrImage" src="" alt="QR Code" style="max-width: 300px; border: 2px solid var(--primary); border-radius: 8px;">
+                            </div>
+                        </div>
+                        <hr class="divider">
+                        <h4>Quét / xác minh QR từ ảnh</h4>
+                        <div class="form-row">
+                            <input type="text" id="qrScanPlate" class="input-field" placeholder="Biển số cần đối chiếu (tùy chọn)">
+                            <input type="file" id="qrScanImage" class="input-field" accept="image/*">
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-full" onclick="scanQRCode()">🔍 Quét QR</button>
+                        <div id="qrScanResult" class="tx-result hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: HISTORY ========== -->
+            <section class="tab-content" id="tab-history">
+                <div class="history-layout">
+                    <div class="glass-card">
+                        <h3 class="card-title">📋 Lịch sử giao dịch Blockchain</h3>
+                        <div class="history-search">
+                            <input type="text" id="historySearchInput" class="input-field" placeholder="Tìm biển số...">
+                            <button class="btn btn-small" onclick="searchPlateHistory()">Tìm kiếm</button>
+                        </div>
+                        <div id="historyTimeline" class="timeline">
+                            <div class="empty-msg">Chưa có lịch sử giao dịch</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 class="card-title">🔍 Chi tiết biển số</h3>
+                        <div id="plateDetailView" class="plate-detail">
+                            <div class="empty-msg">Chọn biển số để xem chi tiết</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TAB: ADMIN PANEL ========== -->
+            <section class="tab-content admin-only-action hidden" id="tab-admin">
+                <div class="admin-layout">
+                    <!-- Admin Status Card -->
+                    <div class="glass-card admin-status-card">
+                        <div class="admin-status-header">
+                            <div class="admin-avatar">
+                                <span class="admin-avatar-icon">🛡️</span>
+                                <div class="admin-avatar-ring"></div>
+                            </div>
+                            <div class="admin-status-info">
+                                <h3 class="admin-status-title">Quản Trị Viên Hệ Thống</h3>
+                                <div class="admin-address-display">
+                                    <span class="admin-address-label">Địa chỉ ví:</span>
+                                    <span class="admin-address-value" id="adminAddressDisplay">Chưa kết nối</span>
+                                </div>
+                                <div class="admin-address-display">
+                                    <span class="admin-address-label">Contract Admin:</span>
+                                    <span class="admin-address-value" id="contractAdminDisplay">—</span>
+                                </div>
+                                <div class="admin-address-display">
+                                    <span class="admin-address-label">Smart Contract:</span>
+                                    <span class="admin-address-value" id="contractAddressDisplay">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-permissions">
+                            <div class="admin-perm-title">Quyền hạn Admin:</div>
+                            <div class="admin-perm-list">
+                                <div class="admin-perm-item">✅ Đăng ký biển số xe mới</div>
+                                <div class="admin-perm-item">✅ Cập nhật loại xe, màu xe, tỉnh đăng ký</div>
+                                <div class="admin-perm-item">✅ Chuyển nhượng quyền sở hữu</div>
+                                <div class="admin-perm-item">✅ Khóa / mở khóa phương tiện</div>
+                                <div class="admin-perm-item">✅ Ghi nhận lỗi vi phạm giao thông</div>
+                                <div class="admin-perm-item">✅ Xử lý trạng thái nộp phạt</div>
+                                <div class="admin-perm-item">✅ Quản lý danh sách xe mất cắp</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Admin: Lock / Unlock -->
+                    <div class="glass-card admin-action-card">
+                        <h3 class="card-title">🔐 Khóa / Mở Khóa Phương Tiện (Admin)</h3>
+                        <input type="text" id="adminDeactivatePlate" class="input-field" placeholder="Nhập biển số cần xử lý">
+                        <div class="plate-status-actions">
+                            <button type="button" class="btn btn-danger" onclick="adminDeactivatePlate()" id="adminDeactivateBtn">🔒 Khóa phương tiện</button>
+                            <button type="button" class="btn btn-success" onclick="adminReactivatePlate()" id="adminReactivateBtn">🔓 Mở khóa phương tiện</button>
+                        </div>
+                        <div id="adminDeactivateResult" class="tx-result hidden"></div>
+                    </div>
+
+                    <!-- Quick Admin: Update Vehicle -->
+                    <div class="glass-card admin-action-card">
+                        <h3 class="card-title">🛠️ Cập Nhật Phương Tiện (Admin)</h3>
+                        <form id="adminUpdateVehicleForm" onsubmit="adminUpdateVehicle(event)">
+                            <div class="form-group">
+                                <label>Biển số xe *</label>
+                                <input type="text" id="adminUpdPlate" class="input-field" placeholder="VD: 30G-493.44" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Loại xe</label>
+                                    <select id="adminUpdType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Màu xe</label>
+                                    <select id="adminUpdColor" class="input-field" data-select-source="colors" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tỉnh/Thành phố</label>
+                                <select id="adminUpdProvince" class="input-field" data-select-source="provinces" data-placeholder="Giữ nguyên nếu bỏ trống"></select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full" id="adminUpdateVehicleBtn">🛠️ Cập nhật</button>
+                        </form>
+                        <div id="adminUpdateVehicleResult" class="tx-result hidden"></div>
+                    </div>
+
+                    <!-- Quick Admin: Add Violation -->
+                    <div class="glass-card admin-action-card">
+                        <h3 class="card-title">📝 Ghi Nhận Vi Phạm (Admin)</h3>
+                        <form id="adminViolationForm" onsubmit="adminAddViolation(event)">
+                            <div class="form-group">
+                                <label>Biển số vi phạm *</label>
+                                <input type="text" id="adminViolPlate" class="input-field" placeholder="VD: 30G-493.44" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mô tả lỗi vi phạm *</label>
+                                <input type="text" id="adminViolDesc" class="input-field" placeholder="VD: Vượt đèn đỏ tại ngã tư..." required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Số tiền phạt (VNĐ)</label>
+                                    <input type="number" id="adminViolFine" class="input-field" placeholder="VD: 2000000" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-full" id="adminViolBtn">📝 Ghi Lỗi Vi Phạm</button>
+                            </div>
+                        </form>
+                        <div id="adminViolationResult" class="tx-result hidden"></div>
+                    </div>
+
+                    <!-- Quick Admin: Mark Fine Paid -->
+                    <div class="glass-card admin-action-card">
+                        <h3 class="card-title">✅ Xử Lý Nộp Phạt (Admin)</h3>
+                        <form id="adminPaidViolationForm" onsubmit="adminMarkViolationPaid(event)">
+                            <div class="form-group">
+                                <label>Biển số xe *</label>
+                                <input type="text" id="adminPaidPlate" class="input-field" placeholder="VD: 30G-493.44" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mã lỗi / thứ tự vi phạm *</label>
+                                <input type="number" id="adminPaidIndex" class="input-field" min="0" placeholder="VD: 0" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-full" id="adminPaidViolationBtn">✅ Đánh dấu đã nộp phạt</button>
+                        </form>
+                        <div id="adminPaidViolationResult" class="tx-result hidden"></div>
+                    </div>
+
+                    <!-- Admin: Register Plate -->
+                    <div class="glass-card admin-action-card">
+                        <h3 class="card-title">📝 Đăng Ký Biển Số Mới (Admin)</h3>
+                        <form id="adminRegisterForm" onsubmit="adminRegisterPlate(event)">
+                            <div class="form-group">
+                                <label>Biển số xe *</label>
+                                <input type="text" id="adminRegPlate" class="input-field" placeholder="VD: 30G-493.44" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tên chủ xe *</label>
+                                <input type="text" id="adminRegOwner" class="input-field" placeholder="VD: Nguyễn Văn A" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Loại xe</label>
+                                    <select id="adminRegType" class="input-field" data-select-source="vehicleTypes" data-placeholder="Chọn loại xe"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Màu xe</label>
+                                    <select id="adminRegColor" class="input-field" data-select-source="colors" data-placeholder="Chọn màu xe"></select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tỉnh/Thành phố</label>
+                                <select id="adminRegProvince" class="input-field" data-select-source="provinces" data-placeholder="Chọn tỉnh/thành phố"></select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full" id="adminRegBtn">
+                                ⛓️ Đăng Ký Lên Blockchain
+                            </button>
+                        </form>
+                        <div id="adminRegisterResult" class="tx-result hidden"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <p id="loadingText">Đang xử lý...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='app.js') }}?v=20260604-plate-detail"></script>
+</body>
+</html>

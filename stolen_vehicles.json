@@ -1,0 +1,28 @@
+{
+  "vehicles": [
+    {
+      "plate_number": "36X1-123.45",
+      "owner_name": "Thắng",
+      "vehicle_type": "Xe máy",
+      "color": "Trắng",
+      "province": "Thanh Hoá",
+      "report_date": "2021-10-22",
+      "description": "xe mất",
+      "added_at": "2026-05-26T15:23:39.107711",
+      "status": "recovered",
+      "resolved_at": "2026-05-26T15:24:00.777924"
+    },
+    {
+      "plate_number": "36X1-123.45",
+      "owner_name": "Thắng",
+      "vehicle_type": "Ô tô",
+      "color": "Trắng",
+      "province": "Thanh Hóa",
+      "report_date": "2026-05-26",
+      "description": "mất",
+      "added_at": "2026-05-27T02:38:52.730293",
+      "status": "missing"
+    }
+  ],
+  "last_updated": "2026-05-27T02:38:52.730293"
+}
