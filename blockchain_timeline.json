@@ -1,6 +1,71 @@
 {
   "transactions": [
     {
+      "id": 17,
+      "type": "register",
+      "plate_number": "99A-99999",
+      "tx_hash": "a1e3e2f4e0b0d2ecf6a3b182d2b199d33ee1bdf5c26ddb3a67182b19554fad70",
+      "block_number": 10983128,
+      "gas_used": 250457,
+      "owner_name": "Phong",
+      "details": "Đăng ký biển số; loại xe: Ô tô; tỉnh: Bắc Ninh",
+      "timestamp": "2026-06-04T01:46:48",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/a1e3e2f4e0b0d2ecf6a3b182d2b199d33ee1bdf5c26ddb3a67182b19554fad70",
+      "block_url": "https://sepolia.etherscan.io/block/10983128"
+    },
+    {
+      "id": 16,
+      "type": "register",
+      "plate_number": "36B-123.45",
+      "tx_hash": "80d3cb467ac221f2dca9f1fd75ee1e8a86b72166b4232717932d3e16ec3a8d44",
+      "block_number": 10983118,
+      "gas_used": 250445,
+      "owner_name": "Quân",
+      "details": "Đăng ký biển số; loại xe: Ô tô; tỉnh: Thanh Hoá",
+      "timestamp": "2026-06-04T01:44:36",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/80d3cb467ac221f2dca9f1fd75ee1e8a86b72166b4232717932d3e16ec3a8d44",
+      "block_url": "https://sepolia.etherscan.io/block/10983118"
+    },
+    {
+      "id": 15,
+      "type": "register",
+      "plate_number": "36X1-567.89",
+      "tx_hash": "ce4cc3632b3f2c55964513d742ea4da7b9d406dc45c3eb442ce449f5860f61c1",
+      "block_number": 10983117,
+      "gas_used": 250493,
+      "owner_name": "Quân",
+      "details": "Đăng ký biển số; loại xe: Ô tô; tỉnh: Thanh Hoá",
+      "timestamp": "2026-06-04T01:44:24",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/ce4cc3632b3f2c55964513d742ea4da7b9d406dc45c3eb442ce449f5860f61c1",
+      "block_url": "https://sepolia.etherscan.io/block/10983117"
+    },
+    {
+      "id": 18,
+      "type": "deactivate",
+      "plate_number": "36A-666.66",
+      "tx_hash": "28b523fe1da6c9736d6818f667ac3b922567f9688b4d0f413e0b0db7ad8ef14c",
+      "block_number": 10983113,
+      "gas_used": 38791,
+      "owner_name": "",
+      "details": "Khóa phương tiện / vô hiệu hóa biển số",
+      "timestamp": "2026-06-04T01:43:36",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/28b523fe1da6c9736d6818f667ac3b922567f9688b4d0f413e0b0db7ad8ef14c",
+      "block_url": "https://sepolia.etherscan.io/block/10983113"
+    },
+    {
+      "id": 14,
+      "type": "register",
+      "plate_number": "36A-666.66",
+      "tx_hash": "0718180d89729b4b34582f87c141c9345ba56726d2e7c845faed8719493db616",
+      "block_number": 10983112,
+      "gas_used": 284705,
+      "owner_name": "Thắng",
+      "details": "Đăng ký biển số; loại xe: Ô tô; tỉnh: Thanh Hoá",
+      "timestamp": "2026-06-04T01:43:24",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/0718180d89729b4b34582f87c141c9345ba56726d2e7c845faed8719493db616",
+      "block_url": "https://sepolia.etherscan.io/block/10983112"
+    },
+    {
       "id": 13,
       "type": "deactivate",
       "plate_number": "36A-666.66",

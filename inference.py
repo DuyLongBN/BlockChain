@@ -564,6 +564,19 @@ class LicensePlateRecognizer:
                         or float(char_result.get('confidence', 0.0) or 0.0) >= float(best_result.get('confidence', 0.0) or 0.0) - 0.12
                     ):
                         best_result = char_result
+                if not self._is_plausible_plate_number(best_result.get('plate_number', '')):
+                    utils.log_message(
+                        f"Rejected OCR result that does not match Vietnamese plate format: "
+                        f"'{best_result.get('plate_number', '')}'",
+                        'WARNING'
+                    )
+                    return {
+                        'method': 'error',
+                        'strategy': best_result.get('strategy', 'ocr_rejected'),
+                        'plate_number': 'UNKNOWN',
+                        'confidence': 0.0,
+                        'raw_text': best_result.get('raw_text', '')
+                    }
                 utils.log_message(f"Best OCR result: '{best_result['plate_number']}' ({best_result['strategy']}, conf={best_result['confidence']:.3f})", 'INFO')
                 return best_result
             else:
@@ -600,7 +613,11 @@ class LicensePlateRecognizer:
         h, w = plate_image.shape[:2]
         if h <= 0:
             return False
-        return (w / h) >= 1.75
+        # Vietnamese two-line plates can still be wider than tall after YOLO
+        # padding. Treat only clearly wide crops as one-line plates; otherwise
+        # character OCR may read stacked rows left-to-right and produce a very
+        # confident but wrong result.
+        return (w / h) >= 2.35
 
     def _correct_two_line_plate_top_with_ocr(self, recognition, plate_image):
         """Cross-check the top row of square plates before trusting inferred series letters."""
@@ -1657,6 +1674,15 @@ class LicensePlateRecognizer:
     def _tighten_plate_crop_repeated(self, plate_image, original_bbox=None, max_passes=2):
         crop = plate_image
         bbox = original_bbox
+        if crop is not None and crop.size:
+            image_h, image_w = crop.shape[:2]
+            if image_h > 0 and (image_w / image_h) < 2.25:
+                # For square/two-line plates, the loose YOLO crop usually
+                # preserves the first/last characters better than contour
+                # tightening. The old repeated tighten cut "51H 881.24" down
+                # to "1H ..." and made OCR fail.
+                return crop, bbox
+
         for _ in range(max_passes):
             tightened = self._tighten_plate_crop(crop, bbox)
             if not tightened:
@@ -1665,6 +1691,15 @@ class LicensePlateRecognizer:
             next_crop, next_bbox = tightened
             current_area = max(1, crop.shape[0] * crop.shape[1])
             next_area = max(1, next_crop.shape[0] * next_crop.shape[1])
+            current_h, current_w = crop.shape[:2]
+            next_h, next_w = next_crop.shape[:2]
+            if current_w > 0 and current_h > 0:
+                width_ratio = next_w / current_w
+                height_ratio = next_h / current_h
+                next_aspect = next_w / max(1, next_h)
+                if width_ratio < 0.72 or height_ratio < 0.62 or next_aspect < 1.50:
+                    break
+
             crop, bbox = next_crop, next_bbox
             if next_area / current_area > 0.94:
                 break
@@ -1962,10 +1997,16 @@ class LicensePlateRecognizer:
 
     def _score_plate_candidate(self, plate_number, confidence):
         compact_len = len(re.sub(r'[^A-Z0-9]', '', plate_number or ''))
+        plausible = self._is_plausible_plate_number(plate_number)
+        if not plausible:
+            # Do not let long garbage such as "1-T1221-11221" beat a shorter
+            # valid plate just because EasyOCR returned a higher confidence.
+            overflow_penalty = max(0, compact_len - 9) * 1.8
+            return min(float(confidence or 0.0) * compact_len, 2.0) - overflow_penalty
+
         score = float(confidence or 0.0) * compact_len
 
-        if self._is_plausible_plate_number(plate_number):
-            score += 4.0
+        score += 4.0
 
         parts = [p for p in re.split(r'-+', plate_number or '') if p]
         if len(parts) >= 2:

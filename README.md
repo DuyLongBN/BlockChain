@@ -222,3 +222,13 @@ Không xoá các thư mục này khi đang chuẩn bị demo, trừ khi muốn r
 - `.env` đã được ignore và phải giữ ở máy local.
 - Không gửi giao dịch thật nếu chưa kiểm tra đúng mạng Sepolia và đúng ví admin.
 - Frontend/backend đã che tên chủ xe đối với người dùng thường. Tuy nhiên Sepolia là blockchain công khai và contract hiện lưu tên chủ xe dạng chuỗi, nên dữ liệu on-chain vẫn có thể được đọc trực tiếp bằng công cụ blockchain. Muốn bảo mật dữ liệu cá nhân thực sự cần lưu hash hoặc mã tham chiếu on-chain và giữ dữ liệu chi tiết ở hệ thống off-chain có phân quyền; thay đổi này yêu cầu redeploy contract.
+
+## Poster
+
+<p align="center">
+  <img src="docs/Poster.png" width="900">
+</p>
+
+<p align="center">
+  📄 <a href="docs/Poster.pdf">Xem Poster PDF</a>
+</p>
